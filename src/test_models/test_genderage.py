@@ -282,7 +282,7 @@ while True:
 
             track.last_analysis = now
 
-        if now - track.last_seen > 0.5:
+        if now - track.last_seen > 0.2:
             continue
 
         # ------------------------------------------
