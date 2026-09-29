@@ -148,9 +148,7 @@ def transform(image, center, output_size, scale):
     return cropped
 
 
-# --------------------------------------------------
 # Face detector
-# --------------------------------------------------
 
 face_detector = cv2.FaceDetectorYN.create(
     FACE_MODEL_PATH,
@@ -162,9 +160,7 @@ face_detector = cv2.FaceDetectorYN.create(
 )
 
 
-# --------------------------------------------------
 # Age / gender model
-# --------------------------------------------------
 
 core = ov.Core()
 
@@ -176,16 +172,12 @@ input_layer = compiled_model.input(0)
 output_layer = compiled_model.output(0)
 
 
-# --------------------------------------------------
 # Tracker
-# --------------------------------------------------
 
 tracker = Tracker()
 
 
-# --------------------------------------------------
 # Video
-# --------------------------------------------------
 
 cap = cv2.VideoCapture(VIDEO_PATH)
 

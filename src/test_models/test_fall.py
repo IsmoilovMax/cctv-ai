@@ -3,10 +3,6 @@ from ultralytics import YOLO
 
 from detectors.fall_detector import FallDetector
 
-# VIDEO_PATH = "videos/standing-fall.mp4"
-# VIDEO_PATH = "videos/face-demographics-walking.mp4"
-# VIDEO_PATH = "videos/walk_P01_T01_video.mp4"
-# VIDEO_PATH = "videos/normal-activity.mp4"
 VIDEO_PATH = "videos/fall/fall_bwd_P01_T04_video.mp4"
 
 model = YOLO("yolo26n-pose.pt")
@@ -29,7 +25,28 @@ while True:
 
         break
 
-    results = model(frame, device="cpu", conf=0.5, verbose=False)
+    # =====================================================
+    # YOLO POSE
+    # =====================================================
+
+    results = model(
+        frame,
+        device="cpu",
+        conf=0.5,
+        verbose=False,
+    )
+
+    # =====================================================
+    # DEFAULT STATE
+    # =====================================================
+
+    is_fall = False
+    angle = 0
+    ratio = 0
+
+    # =====================================================
+    # FALL DETECTION
+    # =====================================================
 
     if results[0].keypoints is not None:
 
@@ -39,49 +56,52 @@ while True:
 
             person_keypoints = keypoints[0].cpu().numpy()
 
-            is_fall, angle, ratio = fall_detector.detect(person_keypoints)
+            (
+                is_fall,
+                angle,
+                ratio,
+            ) = fall_detector.detect(person_keypoints)
 
-            if is_fall:
+    # =====================================================
+    # DRAW YOLO SKELETON
+    # =====================================================
 
-                print(
-                    f"FALL DETECTED | " f"Angle: {angle:.1f} | " f"Ratio: {ratio:.2f}"
-                )
+    annotated_frame = results[0].plot(labels=False)
 
-                cv2.putText(
-                    frame,
-                    "FALL DETECTED",
-                    (30, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1.2,
-                    (0, 0, 255),
-                    3,
-                )
+    # =====================================================
+    # FALL STATUS
+    # =====================================================
 
-            else:
+    if is_fall:
 
-                cv2.putText(
-                    frame,
-                    "NORMAL",
-                    (30, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1.2,
-                    (0, 255, 0),
-                    3,
-                )
+        print(f"FALL DETECTED | " f"Angle: {angle:.1f} | " f"Ratio: {ratio:.2f}")
 
-    annotated_frame = results[0].plot()
+        status = "FALL DETECTED"
+        color = (0, 0, 255)
+
+    else:
+
+        status = "NORMAL"
+        color = (0, 255, 0)
 
     cv2.putText(
         annotated_frame,
-        "FALL DETECTED" if is_fall else "NORMAL",
+        status,
         (30, 60),
         cv2.FONT_HERSHEY_SIMPLEX,
         1.2,
-        (0, 0, 255) if is_fall else (0, 255, 0),
+        color,
         3,
     )
 
-    cv2.imshow("Fall Detection Test", annotated_frame)
+    # =====================================================
+    # SHOW
+    # =====================================================
+
+    cv2.imshow(
+        "Fall Detection Test",
+        annotated_frame,
+    )
 
     key = cv2.waitKey(100) & 0xFF
 
@@ -90,4 +110,5 @@ while True:
 
 
 cap.release()
+
 cv2.destroyAllWindows()
